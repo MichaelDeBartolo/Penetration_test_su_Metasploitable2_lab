@@ -62,3 +62,20 @@
 ---
 
 **Repository creato per scopi di documentazione e formazione in cybersecurity**
+
+### 4.1 Comandi di enumerazione sul target
+```bash
+# Visualizza la directory corrente
+pwd
+
+# Elenca file e directory nella cartella corrente
+ls -l
+
+# Verifica l'utente con cui si sta operando
+whoami
+
+# Consulta gli account locali del sistema
+cat /etc/passwd
+
+# Ispeziona la directory /home
+cd /home
