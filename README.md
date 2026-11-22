@@ -62,5 +62,3 @@
 ---
 
 **Repository creato per scopi di documentazione e formazione in cybersecurity**
-
-Ultimo aggiornamento: 2025-01-26
