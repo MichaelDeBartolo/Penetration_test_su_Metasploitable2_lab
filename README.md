@@ -72,7 +72,7 @@ PING 172.16.236.131 (172.16.236.131) 56(84) bytes of data.
 64 bytes from 172.16.236.131: icmp_seq=2 ttl=64 time=0.350 ms
 ```
 
-**Interpretazione:** La ricezione di risposte ICMP confirma che il target è raggiungibile sulla rete.
+**Interpretazione:** La ricezione di risposte ICMP conferma che il target è raggiungibile sulla rete.
 
 ---
 
